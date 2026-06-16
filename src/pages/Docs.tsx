@@ -1,58 +1,69 @@
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { API_BASE } from "../lib/api";
 
-const executeUrl = `${API_BASE}/execute`;
-
-const javascriptExample = `fetch("${executeUrl}", {
+const browserExample = String.raw`const response = await fetch("/api/execute", {
   method: "POST",
   headers: {
-    "Authorization": "Bearer YOUR_API_KEY",
     "Content-Type": "application/json"
   },
+  credentials: "include",
   body: JSON.stringify({
     tool: "github_delete_repo",
     arguments: {}
   })
-})`;
+});
 
-const curlExample = `curl -X POST ${executeUrl} \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -H "Content-Type: application/json" \\
+const result = await response.json();
+
+if (result.status === "blocked") {
+  throw new Error(result.reason || "Blocked by policy");
+}`;
+
+const curlExample = String.raw`curl -X POST https://relay-security-lemon.vercel.app/api/execute \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
   -d '{"tool":"github_delete_repo","arguments":{}}'`;
 
-const powershellExample = `$body = @{
-  tool = "github_delete_repo"
-  arguments = @{}
-} | ConvertTo-Json -Depth 10
+const langChainExample = String.raw`import { DynamicStructuredTool } from "@langchain/core/tools";
+import { z } from "zod";
 
-Invoke-RestMethod -Uri "https://relay-security-lemon.vercel.app/api/execute" `
-  + `-Method Post `
-  + `-ContentType "application/json" `
-  + `-Headers @{ Authorization = "Bearer YOUR_API_KEY" } `
-  + `-Body $body`;
+export const relayGuard = new DynamicStructuredTool({
+  name: "relay_guard",
+  description: "Send a tool call through Relay before the agent executes it.",
+  schema: z.object({
+    tool: z.string(),
+    arguments: z.record(z.any()).default({})
+  }),
+  func: async ({ tool, arguments: args }) => {
+    const response = await fetch("https://relay-security-lemon.vercel.app/api/execute", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + process.env.RELAY_API_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ tool, arguments: args })
+    });
 
-const pythonExample = `import requests
+    const result = await response.json();
+    return JSON.stringify(result);
+  }
+});`;
 
-def relay_execute(tool, arguments, api_key):
-    response = requests.post(
-        "${executeUrl}",
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        },
-        json={"tool": tool, "arguments": arguments}
-    )
-    return response.json()
+const dashboardExample = String.raw`{
+  "status": "blocked",
+  "reason": "Policy violation"
+}`;
 
-# Instead of directly calling github.delete_repo():
-# result = relay_execute("github_delete_repo", {"repo_name": "myrepo"}, api_key)
-# if result["status"] == "blocked":
-#     # handle blocked`;
-
-function CodeBlock({ label, code }: { label: string; code: string }) {
+function CodeBlock({
+  label,
+  code,
+}: {
+  label: string;
+  code: string;
+}) {
   return (
     <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-code)] bg-[var(--bg-primary)]">
-      <div className="border-b border-[var(--border)] px-4 py-2.5">
+      <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-2.5">
         <span className="text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-tertiary)]">
           {label}
         </span>
@@ -64,91 +75,217 @@ function CodeBlock({ label, code }: { label: string; code: string }) {
   );
 }
 
+function Step({
+  number,
+  title,
+  body,
+}: {
+  number: string;
+  title: string;
+  body: ReactNode;
+}) {
+  return (
+    <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-secondary)] p-5">
+      <div className="mb-3 flex items-center gap-3">
+        <span className="text-label">{number}</span>
+        <h3 className="text-base font-semibold text-[var(--text-primary)]">
+          {title}
+        </h3>
+      </div>
+      <div className="text-sm leading-7 text-[var(--text-secondary)]">
+        {body}
+      </div>
+    </div>
+  );
+}
+
 export default function Docs() {
   return (
     <main className="min-h-screen bg-[var(--bg-primary)] pt-14">
-      <div className="mx-auto max-w-3xl px-6 py-16 lg:py-20">
-        <p className="text-label mb-4">Quick start</p>
+      <div className="mx-auto max-w-7xl px-6 py-12 lg:py-16">
+        <section className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
+          <div>
+            <p className="text-label mb-4">Quickstart</p>
+            <h1 className="max-w-2xl text-4xl font-bold tracking-[-0.03em] text-[var(--text-primary)] sm:text-5xl">
+              Integrate Relay in 5 minutes and stop bad tool calls before they
+              run.
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--text-secondary)]">
+              Relay sits in front of your tools, checks policy, and returns
+              either <code>allowed</code> or <code>blocked</code> with a reason.
+              Use the browser session path for the Playground, or use an API key
+              when you call Relay from your own app, agent, or backend.
+            </p>
 
-        <h1 className="text-3xl font-bold tracking-[-0.02em] text-[var(--text-primary)] sm:text-4xl">
-          Protect your AI agent in 5 minutes
-        </h1>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                to="/playground"
+                className="inline-flex h-11 items-center rounded-[var(--radius-md)] bg-white px-4 text-sm font-medium text-black transition-opacity hover:opacity-90"
+              >
+                Open Playground
+              </Link>
+              <Link
+                to="/settings/api-keys"
+                className="inline-flex h-11 items-center rounded-[var(--radius-md)] border border-[var(--border)] px-4 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-secondary)]"
+              >
+                Get API Key
+              </Link>
+              <Link
+                to="/dashboard"
+                className="inline-flex h-11 items-center rounded-[var(--radius-md)] border border-[var(--border)] px-4 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-secondary)]"
+              >
+                View Audit Logs
+              </Link>
+            </div>
 
-        <ol className="mt-10 space-y-8 text-[15px] leading-[1.7] text-[var(--text-secondary)]">
-          <li className="flex gap-4">
-            <span className="text-label mt-0.5 shrink-0">01</span>
-            <div>
-              <p className="text-[var(--text-primary)]">
-                Sign up → get your API key from{" "}
-                <Link
-                  to="/settings/api-keys"
-                  className="text-white underline underline-offset-2 hover:opacity-90"
-                >
-                  Settings
-                </Link>
+            <div className="mt-8 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-secondary)] p-5">
+              <p className="text-sm font-semibold text-[var(--text-primary)]">
+                Playground vs API key
+              </p>
+              <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">
+                The Playground uses your signed-in browser session and the same
+                domain proxy, so it should work without an API key. If you are
+                integrating Relay into a separate app, use the API key example
+                below.
               </p>
             </div>
-          </li>
+          </div>
 
-          <li className="flex gap-4">
-            <span className="text-label mt-0.5 shrink-0">02</span>
-            <div>
-              <p className="text-[var(--text-primary)]">
-                Create a policy (e.g., block{" "}
-                <code className="rounded-[var(--radius-sm)] bg-[var(--bg-secondary)] px-1.5 py-0.5 font-mono text-[13px] text-[var(--code-text)]">
-                  github_delete_repo
-                </code>
-                )
-              </p>
-              <p className="mt-1">
-                Add rules in{" "}
-                <Link
-                  to="/policies"
-                  className="text-white underline underline-offset-2 hover:opacity-90"
-                >
-                  Policies
-                </Link>
-                .
-              </p>
-            </div>
-          </li>
-
-          <li className="flex gap-4">
-            <span className="text-label mt-0.5 shrink-0">03</span>
-            <div className="min-w-0 flex-1">
-              <p className="mb-4 text-[var(--text-primary)]">
-                Replace your agent&apos;s direct tool call with:
-              </p>
-              <div className="space-y-4">
-                <CodeBlock label="JavaScript" code={javascriptExample} />
-                <CodeBlock label="curl" code={curlExample} />
-                <CodeBlock label="PowerShell" code={powershellExample} />
-                <CodeBlock label="Python" code={pythonExample} />
+          <div className="rounded-[var(--radius-xl)] border border-[var(--border)] bg-[var(--bg-secondary)] p-6 shadow-[0_16px_48px_rgba(0,0,0,0.18)]">
+            <p className="text-label mb-4">5-minute flow</p>
+            <div className="space-y-3">
+              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-primary)] p-4">
+                <p className="text-sm font-semibold text-[var(--text-primary)]">
+                  1. Create an API key
+                </p>
+                <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
+                  Open{" "}
+                  <Link
+                    to="/settings/api-keys"
+                    className="text-white underline underline-offset-2 hover:opacity-90"
+                  >
+                    Settings
+                  </Link>{" "}
+                  and copy your Relay key.
+                </p>
               </div>
-              <p className="mt-4 text-sm text-[var(--text-secondary)]">
-                Browser code can use <code>/api/execute</code>. PowerShell and
-                other terminal tools need a full URL, because they do not share
-                your browser session.
-              </p>
+              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-primary)] p-4">
+                <p className="text-sm font-semibold text-[var(--text-primary)]">
+                  2. Add one rule
+                </p>
+                <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
+                  Start with something obvious, like blocking{" "}
+                  <code className="rounded-[var(--radius-sm)] bg-[var(--bg-secondary)] px-1.5 py-0.5 font-mono text-[12px] text-[var(--code-text)]">
+                    github_delete_repo
+                  </code>
+                  .
+                </p>
+              </div>
+              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-primary)] p-4">
+                <p className="text-sm font-semibold text-[var(--text-primary)]">
+                  3. Replace the direct tool call
+                </p>
+                <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
+                  Send the tool name and arguments to Relay before the action
+                  executes.
+                </p>
+              </div>
+              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-primary)] p-4">
+                <p className="text-sm font-semibold text-[var(--text-primary)]">
+                  4. Read the result
+                </p>
+                <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
+                  Stop the agent on <code>blocked</code> and continue on{" "}
+                  <code>allowed</code>.
+                </p>
+              </div>
             </div>
-          </li>
+          </div>
+        </section>
 
-          <li className="flex gap-4">
-            <span className="text-label mt-0.5 shrink-0">04</span>
-            <div>
-              <p className="text-[var(--text-primary)]">
-                That&apos;s it. Every blocked call is logged in your{" "}
-                <Link
-                  to="/dashboard"
-                  className="text-white underline underline-offset-2 hover:opacity-90"
-                >
-                  dashboard
-                </Link>
-                .
+        <section className="mt-14 grid gap-6 lg:grid-cols-2">
+          <Step
+            number="01"
+            title="Use Relay from the browser or your frontend"
+            body={
+              <>
+                <p>
+                  If your app is behind the same host or a rewrite, call{" "}
+                  <code>/api/execute</code> directly. Include{" "}
+                  <code>credentials: "include"</code> so local development
+                  keeps working with cookies.
+                </p>
+                <p className="mt-3">
+                  This is the path the Playground uses.
+                </p>
+              </>
+            }
+          />
+          <CodeBlock label="JavaScript" code={browserExample} />
+        </section>
+
+        <section className="mt-6 grid gap-6 lg:grid-cols-2">
+          <CodeBlock label="curl" code={curlExample} />
+          <Step
+            number="02"
+            title="Use Relay from a backend or CLI"
+            body={
+              <>
+                <p>
+                  For server-side integrations, send your API key in the
+                  <code>Authorization</code> header and post the tool payload to
+                  your deployed Relay endpoint.
+                </p>
+                <p className="mt-3">
+                  The example below works from any backend that can make HTTPS
+                  requests.
+                </p>
+              </>
+            }
+          />
+        </section>
+
+        <section className="mt-6 grid gap-6 lg:grid-cols-2">
+          <Step
+            number="03"
+            title="Drop Relay into LangChain"
+            body={
+              <>
+                <p>
+                  Wrap Relay as a tool so your agent asks for approval before it
+                  performs a dangerous action.
+                </p>
+                <p className="mt-3">
+                  You can use the same pattern with other agent frameworks too.
+                </p>
+              </>
+            }
+          />
+          <CodeBlock label="LangChain" code={langChainExample} />
+        </section>
+
+        <section className="mt-6 grid gap-6 lg:grid-cols-2">
+          <CodeBlock label="Typical response" code={dashboardExample} />
+          <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-secondary)] p-6">
+            <p className="text-label mb-3">What to do next</p>
+            <ul className="space-y-3 text-sm leading-7 text-[var(--text-secondary)]">
+              <li>1. Create one or two policies.</li>
+              <li>2. Test a safe tool and a blocked tool.</li>
+              <li>3. Open the Dashboard to confirm the audit trail.</li>
+              <li>4. Ship the Relay wrapper into your agent code.</li>
+            </ul>
+
+            <div className="mt-6 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-primary)] p-4">
+              <p className="text-sm font-semibold text-[var(--text-primary)]">
+                Want to test it now?
+              </p>
+              <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
+                Open the Playground, try <code>github_delete_repo</code>, and
+                confirm Relay returns <code>blocked</code> with a reason.
               </p>
             </div>
-          </li>
-        </ol>
+          </div>
+        </section>
       </div>
     </main>
   );

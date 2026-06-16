@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Badge from "../components/Badge";
 import Button from "../components/Button";
-import { executeTool } from "../lib/api";
 import type { ToolResponse } from "../types/database";
 
 export default function Playground() {
@@ -49,11 +48,25 @@ export default function Playground() {
     }
 
     try {
-      const response = await executeTool({
-        tool: trimmedToolName,
-        arguments: parsedArguments,
-      });
-      setResult(response);
+      const response = await fetch(
+        "https://relay-api-8uhf.onrender.com/api/execute",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tool: trimmedToolName,
+            arguments: parsedArguments,
+          }),
+        },
+      );
+
+      const data = (await response.json()) as ToolResponse & { error?: string };
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Failed to execute tool.");
+      }
+
+      setResult(data);
     } catch (executeError) {
       setError(
         executeError instanceof Error

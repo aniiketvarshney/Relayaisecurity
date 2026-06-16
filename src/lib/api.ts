@@ -1,6 +1,8 @@
 import { supabase } from "./supabase";
 import type { ToolRequest, ToolResponse } from "../types/database";
 
+export const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
+
 export async function executeTool(
   request: ToolRequest,
 ): Promise<ToolResponse> {
@@ -12,7 +14,7 @@ export async function executeTool(
     throw new Error("You must be signed in to execute tools.");
   }
 
-  const response = await fetch("/api/execute", {
+  const response = await fetch(`${API_BASE}/execute`, {
     method: "POST",
     credentials: "include",
     headers: {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Badge from "../components/Badge";
 import Button from "../components/Button";
+import { API_BASE } from "../lib/api";
 import type { ToolResponse } from "../types/database";
 
 export default function Playground() {
@@ -48,9 +49,7 @@ export default function Playground() {
     }
 
     try {
-      const response = await fetch(
-        "https://relay-api-8uhf.onrender.com/api/execute",
-        {
+      const response = await fetch(`${API_BASE}/execute`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

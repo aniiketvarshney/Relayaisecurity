@@ -1,6 +1,6 @@
 import { supabase } from "./supabase";
 
-export const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
+export const API_BASE = "/api";
 
 export async function callApi(tool: string, args?: Record<string, unknown>) {
   const headers = new Headers({

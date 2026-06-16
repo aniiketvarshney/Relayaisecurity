@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://relay-api-8uhf.onrender.com/api/$1"
+    }
+  ]
+}

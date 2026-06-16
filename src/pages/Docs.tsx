@@ -20,6 +20,17 @@ const curlExample = `curl -X POST ${executeUrl} \\
   -H "Content-Type: application/json" \\
   -d '{"tool":"github_delete_repo","arguments":{}}'`;
 
+const powershellExample = `$body = @{
+  tool = "github_delete_repo"
+  arguments = @{}
+} | ConvertTo-Json -Depth 10
+
+Invoke-RestMethod -Uri "https://relay-security-lemon.vercel.app/api/execute" `
+  + `-Method Post `
+  + `-ContentType "application/json" `
+  + `-Headers @{ Authorization = "Bearer YOUR_API_KEY" } `
+  + `-Body $body`;
+
 const pythonExample = `import requests
 
 def relay_execute(tool, arguments, api_key):
@@ -111,8 +122,14 @@ export default function Docs() {
               <div className="space-y-4">
                 <CodeBlock label="JavaScript" code={javascriptExample} />
                 <CodeBlock label="curl" code={curlExample} />
+                <CodeBlock label="PowerShell" code={powershellExample} />
                 <CodeBlock label="Python" code={pythonExample} />
               </div>
+              <p className="mt-4 text-sm text-[var(--text-secondary)]">
+                Browser code can use <code>/api/execute</code>. PowerShell and
+                other terminal tools need a full URL, because they do not share
+                your browser session.
+              </p>
             </div>
           </li>
 

@@ -5,7 +5,15 @@ import { createClient } from "@supabase/supabase-js";
 const API_KEY_PREFIX = "relay_sk_";
 
 const app = express();
-app.use(cors({ origin: "http://localhost:3001", credentials: true }));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3001",
+      "https://relay-security-lemon.vercel.app",
+    ],
+    credentials: true,
+  }),
+);
 app.use(express.json());
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

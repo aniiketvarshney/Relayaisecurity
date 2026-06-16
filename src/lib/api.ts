@@ -1,9 +1,19 @@
+import { supabase } from "./supabase";
+
 export const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
 
 export async function callApi(tool: string, args?: Record<string, unknown>) {
   const headers = new Headers({
     "Content-Type": "application/json",
   });
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (session?.access_token) {
+    headers.set("Authorization", `Bearer ${session.access_token}`);
+  }
 
   const response = await fetch(`${API_BASE}/execute`, {
     method: "POST",

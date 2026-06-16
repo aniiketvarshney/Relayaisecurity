@@ -1,11 +1,9 @@
 import { Link } from "react-router-dom";
+import { API_BASE } from "../lib/api";
 
-const apiBase =
-  typeof window !== "undefined"
-    ? window.location.origin
-    : "https://your-app.vercel.app";
+const executeUrl = `${API_BASE}/execute`;
 
-const javascriptExample = `fetch("${apiBase}/api/execute", {
+const javascriptExample = `fetch("${executeUrl}", {
   method: "POST",
   headers: {
     "Authorization": "Bearer YOUR_API_KEY",
@@ -17,7 +15,7 @@ const javascriptExample = `fetch("${apiBase}/api/execute", {
   })
 })`;
 
-const curlExample = `curl -X POST ${apiBase}/api/execute \\
+const curlExample = `curl -X POST ${executeUrl} \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"tool":"github_delete_repo","arguments":{}}'`;
@@ -26,7 +24,7 @@ const pythonExample = `import requests
 
 def relay_execute(tool, arguments, api_key):
     response = requests.post(
-        "${apiBase}/api/execute",
+        "${executeUrl}",
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"

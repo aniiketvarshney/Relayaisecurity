@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Badge from "../components/Badge";
 import Button from "../components/Button";
-import { API_BASE } from "../lib/api";
+import { callApi } from "../lib/api";
 import type { ToolResponse } from "../types/database";
 
 export default function Playground() {
@@ -49,19 +49,12 @@ export default function Playground() {
     }
 
     try {
-      const response = await fetch(`${API_BASE}/execute`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tool: trimmedToolName,
-            arguments: parsedArguments,
-          }),
-        },
-      );
+      const data = (await callApi(
+        trimmedToolName,
+        parsedArguments,
+      )) as ToolResponse & { error?: string };
 
-      const data = (await response.json()) as ToolResponse & { error?: string };
-
-      if (!response.ok) {
+      if (data.error && !data.status) {
         throw new Error(data.error ?? "Failed to execute tool.");
       }
 

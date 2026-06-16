@@ -37,7 +37,7 @@ export default function SignIn() {
     const { error: signInError } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+        emailRedirectTo: "https://relay-security-lemon.vercel.app/dashboard",
       },
     });
 

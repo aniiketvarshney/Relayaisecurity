@@ -7,10 +7,7 @@ const API_KEY_PREFIX = "relay_sk_";
 const app = express();
 app.use(
   cors({
-    origin: [
-      "http://localhost:3001",
-      "https://relay-security-lemon.vercel.app",
-    ],
+    origin: ["http://localhost:3001", "https://relay-security-lemon.vercel.app"],
     credentials: true,
   }),
 );

@@ -3,6 +3,7 @@ import cors from "cors";
 import { createClient } from "@supabase/supabase-js";
 
 const API_KEY_PREFIX = "relay_sk_";
+const DEFAULT_PORT = 3002;
 
 const app = express();
 app.use(
@@ -32,6 +33,15 @@ function getProjectRef(url) {
 }
 
 const supabaseProjectRef = getProjectRef(supabaseUrl);
+
+const PORT = Number(process.env.PORT ?? DEFAULT_PORT);
+
+console.info("[startup] Relay API ready", {
+  port: PORT,
+  supabaseProjectRef,
+  hasSupabaseUrl: Boolean(supabaseUrl),
+  hasSupabaseKey: Boolean(supabaseKey),
+});
 
 function extractAccessTokenFromCookies(cookieHeader) {
   const cookieName = `sb-${supabaseProjectRef}-auth-token`;
@@ -134,6 +144,14 @@ async function resolveUserId(req) {
   return null;
 }
 
+app.get("/api/health", (_req, res) => {
+  res.json({
+    ok: true,
+    service: "relay-api",
+    port: PORT,
+  });
+});
+
 app.post("/api/execute", async (req, res) => {
   try {
     const tool = req.body.tool ?? req.body.tool_name;
@@ -145,7 +163,11 @@ app.post("/api/execute", async (req, res) => {
     const auth = await resolveUserId(req);
 
     if (!auth?.userId) {
-      return res.status(401).json({ error: "Unauthorized. Please sign in." });
+      return res.status(401).json({
+        error: "Unauthorized. Please sign in.",
+        hint:
+          "No valid Supabase session cookie or API key was found by the backend.",
+      });
     }
 
     const { userId, accessToken, authMethod } = auth;
@@ -223,7 +245,6 @@ app.post("/api/execute", async (req, res) => {
   }
 });
 
-const PORT = 3002;
 app.listen(PORT, () => {
   console.log(`API server running on http://localhost:${PORT}`);
 });

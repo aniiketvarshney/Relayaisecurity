@@ -5,6 +5,11 @@ const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 import type { ToolResponse } from "../src/types/database.ts";
 import { type AuthContext, resolveAuth } from "./auth.ts";
 
+type ExecuteError = {
+  error: string;
+  hint?: string;
+};
+
 interface ExecuteRequestBody {
   tool?: string;
   tool_name?: string;
@@ -146,7 +151,7 @@ async function insertAuditLogWithApiKey(
 async function runExecution(
   auth: AuthContext,
   toolName: string,
-): Promise<{ status: number; body: ToolResponse | { error: string } }> {
+): Promise<{ status: number; body: ToolResponse | ExecuteError }> {
   let policyResult: { blocked: boolean; error?: string };
 
   if (auth.authMethod === "jwt" && auth.accessToken) {
@@ -189,11 +194,18 @@ export async function handleExecute(
   bearerToken: string | null,
   body: unknown,
   cookieHeader?: string | undefined,
-): Promise<{ status: number; body: ToolResponse | { error: string } }> {
+): Promise<{ status: number; body: ToolResponse | ExecuteError }> {
   const auth = await resolveAuth(bearerToken, cookieHeader);
 
   if (!auth) {
-    return { status: 401, body: { error: "Unauthorized" } };
+    return {
+      status: 401,
+      body: {
+        error: "Unauthorized. Please sign in.",
+        hint:
+          "No valid Supabase session cookie or API key was found by the backend.",
+      },
+    };
   }
 
   const toolName = extractToolName(body);

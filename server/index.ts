@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const port = Number(process.env.PORT ?? 3000);
+const port = Number(process.env.PORT ?? 3002);
 const distPath = path.resolve(__dirname, "../dist");
 
 app.use(cors());
@@ -25,6 +25,14 @@ function extractBearerToken(authHeader: string | undefined): string | null {
 
   return authHeader.trim();
 }
+
+app.get("/api/health", (_req, res) => {
+  res.json({
+    ok: true,
+    service: "relay-api",
+    port,
+  });
+});
 
 app.post("/api/execute", async (req, res) => {
   const bearerToken = extractBearerToken(req.headers.authorization);

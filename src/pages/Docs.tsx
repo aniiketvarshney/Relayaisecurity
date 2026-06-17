@@ -1,30 +1,12 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 
-const browserExample = String.raw`const response = await fetch("/api/execute", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  credentials: "include",
-  body: JSON.stringify({
-    tool: "github_delete_repo",
-    arguments: {}
-  })
-});
+const installCommand = "npx @relaysecurity-dev/relay-ai init --yes";
 
-const result = await response.json();
+const envExample = String.raw`RELAY_API_KEY=relay_sk_your_key_here
+RELAY_ENDPOINT=https://relay-security-lemon.vercel.app/api/execute`;
 
-if (result.status === "blocked") {
-  throw new Error(result.reason || "Blocked by policy");
-}`;
-
-const cliExample = String.raw`npx @relaysecurity-dev/relay-ai init
-
-# Then add your key once:
-RELAY_API_KEY=relay_sk_your_key_here`;
-
-const nodeSdkExample = String.raw`import { createRelay } from "@relaysecurity-dev/node";
+const nodeExample = String.raw`import { createRelay } from "@relaysecurity-dev/node";
 
 const relay = createRelay();
 
@@ -35,7 +17,7 @@ export const deleteRepo = relay.guardTool(
   }
 );`;
 
-const pythonSdkExample = String.raw`from relaysecurity_dev import Relay
+const pythonExample = String.raw`from relaysecurity_dev import Relay
 
 relay = Relay()
 
@@ -43,40 +25,27 @@ def delete_repo(arguments):
     relay.assert_allowed("github_delete_repo", arguments)
     return github.delete_repo(arguments["repo_name"])`;
 
+const cliOutputExample = String.raw`relay.config.json
+.env.relay.example
+RELAY_SETUP.md
+relay-examples/node/github-tool-wrapper.ts
+relay-examples/python/github_tool_wrapper.py
+relay-examples/langgraph/relay_guard.py
+relay-examples/claude-code/relay-guard.js`;
+
+const allowedResponse = String.raw`{
+  "status": "allowed"
+}`;
+
+const blockedResponse = String.raw`{
+  "status": "blocked",
+  "reason": "Policy violation"
+}`;
+
 const curlExample = String.raw`curl -X POST https://relay-security-lemon.vercel.app/api/execute \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"tool":"github_delete_repo","arguments":{}}'`;
-
-const langChainExample = String.raw`import { DynamicStructuredTool } from "@langchain/core/tools";
-import { z } from "zod";
-
-export const relayGuard = new DynamicStructuredTool({
-  name: "relay_guard",
-  description: "Send a tool call through Relay before the agent executes it.",
-  schema: z.object({
-    tool: z.string(),
-    arguments: z.record(z.any()).default({})
-  }),
-  func: async ({ tool, arguments: args }) => {
-    const response = await fetch("https://relay-security-lemon.vercel.app/api/execute", {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + process.env.RELAY_API_KEY,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ tool, arguments: args })
-    });
-
-    const result = await response.json();
-    return JSON.stringify(result);
-  }
-});`;
-
-const dashboardExample = String.raw`{
-  "status": "blocked",
-  "reason": "Policy violation"
-}`;
 
 function CodeBlock({
   label,
@@ -114,25 +83,42 @@ function CodeBlock({
   );
 }
 
-function Step({
-  number,
+function Section({
+  eyebrow,
   title,
-  body,
+  children,
 }: {
-  number: string;
+  eyebrow: string;
   title: string;
-  body: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <section className="border-t border-[var(--border)] py-10">
+      <p className="text-label mb-3">{eyebrow}</p>
+      <h2 className="max-w-3xl text-2xl font-semibold text-[var(--text-primary)]">
+        {title}
+      </h2>
+      <div className="mt-5 text-sm leading-7 text-[var(--text-secondary)]">
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function SimpleCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
 }) {
   return (
     <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-secondary)] p-5">
-      <div className="mb-3 flex items-center gap-3">
-        <span className="text-label">{number}</span>
-        <h3 className="text-base font-semibold text-[var(--text-primary)]">
-          {title}
-        </h3>
-      </div>
-      <div className="text-sm leading-7 text-[var(--text-secondary)]">
-        {body}
+      <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+        {title}
+      </h3>
+      <div className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">
+        {children}
       </div>
     </div>
   );
@@ -141,288 +127,152 @@ function Step({
 export default function Docs() {
   return (
     <main className="min-h-screen bg-[var(--bg-primary)] pt-14">
-      <div className="mx-auto max-w-7xl px-6 py-12 lg:py-16">
-        <section className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
-          <div>
-            <p className="text-label mb-4">Quickstart</p>
-            <h1 className="max-w-2xl text-4xl font-bold tracking-[-0.03em] text-[var(--text-primary)] sm:text-5xl">
-              Integrate Relay in 5 minutes and stop bad tool calls before they
-              run.
-            </h1>
-            <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--text-secondary)]">
-              Relay sits in front of your tools, checks policy, and returns
-              either <code>allowed</code> or <code>blocked</code> with a reason.
-              Run the setup command once, then manage policy from the dashboard
-              instead of rewriting safety code in every agent.
-            </p>
+      <div className="mx-auto max-w-5xl px-6 py-12 lg:py-16">
+        <p className="text-label mb-4">Relay quickstart</p>
+        <h1 className="max-w-4xl text-4xl font-bold text-[var(--text-primary)] sm:text-5xl">
+          Protect your AI agent in one setup.
+        </h1>
+        <p className="mt-5 max-w-3xl text-base leading-8 text-[var(--text-secondary)]">
+          Relay is a checkpoint for risky agent actions. Your agent asks Relay
+          before it runs a tool. Relay answers <code>allowed</code> or{" "}
+          <code>blocked</code>. You change the rules later from the dashboard.
+        </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                to="/playground"
-                className="inline-flex h-11 items-center rounded-[var(--radius-md)] bg-white px-4 text-sm font-medium text-black transition-opacity hover:opacity-90"
-              >
-                Open Playground
-              </Link>
-              <Link
-                to="/settings/api-keys"
-                className="inline-flex h-11 items-center rounded-[var(--radius-md)] border border-[var(--border)] px-4 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-secondary)]"
-              >
-                Get API Key
-              </Link>
-              <Link
-                to="/dashboard"
-                className="inline-flex h-11 items-center rounded-[var(--radius-md)] border border-[var(--border)] px-4 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-secondary)]"
-              >
-                View Audit Logs
-              </Link>
-            </div>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link
+            to="/settings/api-keys"
+            className="inline-flex h-11 items-center rounded-[var(--radius-md)] bg-white px-4 text-sm font-medium text-black transition-opacity hover:opacity-90"
+          >
+            Get API Key
+          </Link>
+          <Link
+            to="/policies"
+            className="inline-flex h-11 items-center rounded-[var(--radius-md)] border border-[var(--border)] px-4 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-secondary)]"
+          >
+            Add Policy
+          </Link>
+          <Link
+            to="/playground"
+            className="inline-flex h-11 items-center rounded-[var(--radius-md)] border border-[var(--border)] px-4 text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-secondary)]"
+          >
+            Test Playground
+          </Link>
+        </div>
 
-            <div className="mt-8 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-secondary)] p-5">
-              <p className="text-sm font-semibold text-[var(--text-primary)]">
-                Playground vs API key
-              </p>
-              <p className="mt-2 text-sm leading-7 text-[var(--text-secondary)]">
-                The Playground uses your signed-in browser session and the same
-                domain proxy, so it should work without an API key. If you are
-                integrating Relay into a separate app, use the API key example
-                below.
-              </p>
-            </div>
+        <section className="mt-12 grid gap-4 md:grid-cols-3">
+          <SimpleCard title="1. Install once">
+            Run the CLI in your agent project. It creates config and example
+            wrappers.
+          </SimpleCard>
+          <SimpleCard title="2. Wrap risky tools once">
+            Put Relay around dangerous actions like repo deletion, shell
+            deletes, deploys, and database changes.
+          </SimpleCard>
+          <SimpleCard title="3. Manage rules in Relay">
+            Block or allow tools from the dashboard. Your agent code does not
+            need to change again.
+          </SimpleCard>
+        </section>
+
+        <Section eyebrow="Step 1" title="Run one command in your agent project.">
+          <p className="mb-4">
+            This is the fastest setup. It generates the files developers need
+            instead of making them write everything by hand.
+          </p>
+          <CodeBlock label="Terminal" code={installCommand} />
+          <p className="mt-4">The command creates:</p>
+          <div className="mt-4">
+            <CodeBlock label="Generated files" code={cliOutputExample} />
           </div>
+        </Section>
 
-          <div className="rounded-[var(--radius-xl)] border border-[var(--border)] bg-[var(--bg-secondary)] p-6 shadow-[0_16px_48px_rgba(0,0,0,0.18)]">
-            <p className="text-label mb-4">5-minute flow</p>
-            <div className="space-y-3">
-              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-primary)] p-4">
-                <p className="text-sm font-semibold text-[var(--text-primary)]">
-                  1. Create an API key
-                </p>
-                <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
-                  Run <code>npx @relaysecurity-dev/relay-ai init</code> in the
-                  project you want to protect.
-                </p>
-              </div>
-              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-primary)] p-4">
-                <p className="text-sm font-semibold text-[var(--text-primary)]">
-                  2. Add your API key
-                </p>
-                <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
-                  Store <code>RELAY_API_KEY</code> once in your app or agent
-                  environment.
-                </p>
-              </div>
-              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-primary)] p-4">
-                <p className="text-sm font-semibold text-[var(--text-primary)]">
-                  3. Wrap dangerous tools
-                </p>
-                <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
-                  Send the tool name and arguments to Relay before the action
-                  executes. The SDK keeps that check reusable.
-                </p>
-              </div>
-              <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-primary)] p-4">
-                <p className="text-sm font-semibold text-[var(--text-primary)]">
-                  4. Read the result
-                </p>
-                <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
-                  Stop the agent on <code>blocked</code> and continue on{" "}
-                  <code>allowed</code>. Change rules later in Relay, not code.
-                </p>
-              </div>
-            </div>
+        <Section eyebrow="Step 2" title="Add your API key once.">
+          <p className="mb-4">
+            Create an API key in Relay, then put it in your agent environment.
+            Do not commit this key to GitHub.
+          </p>
+          <CodeBlock label=".env" code={envExample} />
+        </Section>
+
+        <Section eyebrow="Step 3" title="Wrap the dangerous tool once.">
+          <p className="mb-4">
+            Your agent should call the wrapped function, not the raw dangerous
+            function. After that, Relay checks every future call automatically.
+          </p>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <CodeBlock label="Node" code={nodeExample} />
+            <CodeBlock label="Python" code={pythonExample} />
           </div>
-        </section>
+        </Section>
 
-        <section className="mt-14 grid gap-6 lg:grid-cols-2">
-          <Step
-            number="00"
-            title="One-time setup for lazy-fast builders"
-            body={
-              <>
-                <p>
-                  The fastest path is the Relay CLI. It detects the project,
-                  creates <code>relay.config.json</code>, adds example wrappers,
-                  and tells the developer exactly where to put the API key.
-                </p>
-                <p className="mt-3">
-                  After setup, future policy changes happen in the Relay
-                  dashboard.
-                </p>
-              </>
-            }
-          />
-          <CodeBlock label="CLI" code={cliExample} />
-        </section>
+        <Section eyebrow="Step 4" title="Understand the response.">
+          <p className="mb-4">
+            Relay gives a small answer. Your agent continues on{" "}
+            <code>allowed</code>. Your agent stops on <code>blocked</code>.
+          </p>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <CodeBlock label="Allowed" code={allowedResponse} />
+            <CodeBlock label="Blocked" code={blockedResponse} />
+          </div>
+        </Section>
 
-        <section className="mt-6 grid gap-6 lg:grid-cols-2">
-          <CodeBlock label="Node SDK wrapper" code={nodeSdkExample} />
-          <Step
-            number="SDK"
-            title="Change one import, keep the guard forever"
-            body={
-              <>
-                <p>
-                  The SDK wrapper is the default integration path for Node
-                  agents. Developers wrap the dangerous function once, then the
-                  tool automatically checks Relay on every call.
-                </p>
-                <p className="mt-3">
-                  The same pattern can be shipped for Python and Java next.
-                </p>
-              </>
-            }
-          />
-        </section>
+        <Section eyebrow="Step 5" title="Change policy without changing code.">
+          <div className="grid gap-4 md:grid-cols-2">
+            <SimpleCard title="Example">
+              If you block <code>github_delete_repo</code> in Relay, the
+              wrapped delete function starts blocking immediately.
+            </SimpleCard>
+            <SimpleCard title="Audit trail">
+              Every allowed or blocked decision appears in the dashboard, so
+              teams can see what the agent tried to do.
+            </SimpleCard>
+          </div>
+        </Section>
 
-        <section className="mt-6 grid gap-6 lg:grid-cols-2">
-          <Step
-            number="PY"
-            title="Python and LangGraph support"
-            body={
-              <>
-                <p>
-                  Python agents can use the Relay SDK directly, or use the
-                  LangGraph guard generated by the CLI.
-                </p>
-                <p className="mt-3">
-                  Install with <code>pip install relaysecurity-dev</code>, set
-                  <code>RELAY_API_KEY</code>, and wrap risky tools once.
-                </p>
-              </>
-            }
-          />
-          <CodeBlock label="Python SDK wrapper" code={pythonSdkExample} />
-        </section>
-
-        <section className="mt-14 grid gap-6 lg:grid-cols-2">
-          <Step
-            number="01"
-            title="Use Relay from the browser or your frontend"
-            body={
-              <>
-                <p>
-                  If your app is behind the same host or a rewrite, call{" "}
-                  <code>/api/execute</code> directly. Include{" "}
-                  <code>credentials: "include"</code> so local development
-                  keeps working with cookies.
-                </p>
-                <p className="mt-3">
-                  This is the path the Playground uses.
-                </p>
-              </>
-            }
-          />
-          <CodeBlock label="JavaScript" code={browserExample} />
-        </section>
-
-        <section className="mt-6 grid gap-6 lg:grid-cols-2">
+        <Section eyebrow="Direct API" title="Use this when you are not using an SDK.">
+          <p className="mb-4">
+            Any stack that can make an HTTP request can use Relay. Send the tool
+            name and arguments, then follow the response.
+          </p>
           <CodeBlock label="curl" code={curlExample} />
-          <Step
-            number="02"
-            title="Use Relay from a backend or CLI"
-            body={
-              <>
-                <p>
-                  For server-side integrations, send your API key in the
-                  <code>Authorization</code> header and post the tool payload to
-                  your deployed Relay endpoint.
-                </p>
-                <p className="mt-3">
-                  The example below works from any backend that can make HTTPS
-                  requests.
-                </p>
-              </>
-            }
-          />
-        </section>
+        </Section>
 
-        <section className="mt-6 grid gap-6 lg:grid-cols-2">
-          <Step
-            number="03"
-            title="Drop Relay into LangChain"
-            body={
-              <>
-                <p>
-                  Wrap Relay as a tool so your agent asks for approval before it
-                  performs a dangerous action.
-                </p>
-                <p className="mt-3">
-                  You can use the same pattern with other agent frameworks too.
-                </p>
-              </>
-            }
-          />
-          <CodeBlock label="LangChain" code={langChainExample} />
-        </section>
-
-        <section className="mt-6 grid gap-6 lg:grid-cols-2">
-          <CodeBlock label="Typical response" code={dashboardExample} />
-          <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-secondary)] p-6">
-            <p className="text-label mb-3">What to do next</p>
-            <ul className="space-y-3 text-sm leading-7 text-[var(--text-secondary)]">
-              <li>1. Create one or two policies.</li>
-              <li>2. Test a safe tool and a blocked tool.</li>
-              <li>3. Open the Dashboard to confirm the audit trail.</li>
-              <li>4. Ship the Relay wrapper into your agent code.</li>
-            </ul>
-
-            <div className="mt-6 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-primary)] p-4">
-              <p className="text-sm font-semibold text-[var(--text-primary)]">
-                Want to test it now?
-              </p>
-              <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
-                Open the Playground, try <code>github_delete_repo</code>, and
-                confirm Relay returns <code>blocked</code> with a reason.
-              </p>
-            </div>
+        <Section eyebrow="Frameworks" title="Where each integration file goes.">
+          <div className="grid gap-4 md:grid-cols-2">
+            <SimpleCard title="GitHub agent">
+              Use <code>relay-examples/node/github-tool-wrapper.ts</code> or
+              <code>relay-examples/python/github_tool_wrapper.py</code>.
+            </SimpleCard>
+            <SimpleCard title="LangGraph">
+              Use <code>relay-examples/langgraph/relay_guard.py</code> as a
+              guard node before risky graph steps.
+            </SimpleCard>
+            <SimpleCard title="Claude Code">
+              Use <code>relay-examples/claude-code/relay-guard.js</code> as the
+              helper that checks Relay before a command runs.
+            </SimpleCard>
+            <SimpleCard title="Custom agents">
+              Use the direct API example or wrap the tool with the Node/Python
+              SDK.
+            </SimpleCard>
           </div>
-        </section>
+        </Section>
 
-        <section className="mt-10">
-          <div className="mb-5">
-            <p className="text-label mb-3">FAQ</p>
-            <h2 className="text-2xl font-semibold tracking-[-0.02em] text-[var(--text-primary)]">
-              Can Relay protect my agent stack?
-            </h2>
+        <Section eyebrow="Safety" title="Production basics.">
+          <div className="grid gap-4 md:grid-cols-3">
+            <SimpleCard title="Keep keys private">
+              Store <code>RELAY_API_KEY</code> in environment variables. Never
+              paste it into public code.
+            </SimpleCard>
+            <SimpleCard title="Start with presets">
+              Use policy presets for GitHub, shell commands, deploys, and data
+              actions.
+            </SimpleCard>
+            <SimpleCard title="Rotate if exposed">
+              Delete an exposed key from Settings and create a new one.
+            </SimpleCard>
           </div>
-
-          <div className="grid gap-4 lg:grid-cols-3">
-            <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-secondary)] p-5">
-              <h3 className="text-base font-semibold text-[var(--text-primary)]">
-                Can this protect my GitHub agent?
-              </h3>
-              <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">
-                Yes. Put Relay in front of the GitHub action and send the tool
-                name plus arguments first. If Relay returns{" "}
-                <code>blocked</code>, stop the repo-changing action before it
-                runs.
-              </p>
-            </div>
-
-            <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-secondary)] p-5">
-              <h3 className="text-base font-semibold text-[var(--text-primary)]">
-                Can I connect Claude Code?
-              </h3>
-              <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">
-                Yes. Claude Code can call Relay through a small wrapper script
-                or helper service. Relay decides whether the command should be
-                allowed before the tool executes.
-              </p>
-            </div>
-
-            <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-secondary)] p-5">
-              <h3 className="text-base font-semibold text-[var(--text-primary)]">
-                Can I use this with LangGraph?
-              </h3>
-              <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">
-                Yes. Add Relay as a guard node or tool wrapper in your graph.
-                When the graph reaches a risky step, Relay returns{" "}
-                <code>allowed</code> or <code>blocked</code>, and the graph can
-                branch safely from there.
-              </p>
-            </div>
-          </div>
-        </section>
+        </Section>
       </div>
     </main>
   );

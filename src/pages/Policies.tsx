@@ -4,6 +4,49 @@ import Button from "../components/Button";
 import { supabase } from "../lib/supabase";
 import type { Policy, PolicyAction } from "../types/database";
 
+const policyPresets = [
+  {
+    name: "Protect GitHub",
+    description: "Block repo deletion, force pushes, and secret changes.",
+    tools: [
+      "github_delete_repo",
+      "github_force_push",
+      "github_delete_branch",
+      "github_update_secret",
+    ],
+  },
+  {
+    name: "Protect Shell",
+    description: "Block destructive terminal and filesystem commands.",
+    tools: [
+      "shell_rm_rf",
+      "shell_delete_file",
+      "shell_chmod_recursive",
+      "filesystem_delete",
+    ],
+  },
+  {
+    name: "Protect Deploys",
+    description: "Block production deploys and environment changes.",
+    tools: [
+      "deploy_production",
+      "vercel_promote_production",
+      "render_restart_service",
+      "env_update_secret",
+    ],
+  },
+  {
+    name: "Protect Data",
+    description: "Block risky database and payment actions.",
+    tools: [
+      "database_drop_table",
+      "database_delete_rows",
+      "stripe_refund_payment",
+      "stripe_delete_customer",
+    ],
+  },
+];
+
 export default function Policies() {
   const [policies, setPolicies] = useState<Policy[]>([]);
   const [loading, setLoading] = useState(true);
@@ -12,6 +55,7 @@ export default function Policies() {
   const [action, setAction] = useState<PolicyAction>("block");
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [applyingPreset, setApplyingPreset] = useState<string | null>(null);
 
   const loadPolicies = useCallback(async () => {
     setLoading(true);
@@ -107,6 +151,46 @@ export default function Policies() {
     await loadPolicies();
   }
 
+  async function handleApplyPreset(presetName: string, tools: string[]) {
+    setApplyingPreset(presetName);
+    setError(null);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setError("You must be signed in to add policy presets.");
+      setApplyingPreset(null);
+      return;
+    }
+
+    const existingTools = new Set(policies.map((policy) => policy.tool_name));
+    const missingTools = tools.filter((tool) => !existingTools.has(tool));
+
+    if (missingTools.length === 0) {
+      setApplyingPreset(null);
+      return;
+    }
+
+    const { error: insertError } = await supabase.from("policies").insert(
+      missingTools.map((tool) => ({
+        user_id: user.id,
+        tool_name: tool,
+        action: "block" as PolicyAction,
+      }))
+    );
+
+    setApplyingPreset(null);
+
+    if (insertError) {
+      setError(insertError.message);
+      return;
+    }
+
+    await loadPolicies();
+  }
+
   return (
     <main className="min-h-screen bg-[var(--bg-primary)] pt-14">
       <div className="mx-auto max-w-7xl px-6 py-10">
@@ -116,6 +200,42 @@ export default function Policies() {
             Policies
           </h1>
         </div>
+
+        <section className="mb-8">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-label">Policy presets</p>
+            <span className="text-xs text-[var(--text-muted)]">
+              One-click starter rules
+            </span>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {policyPresets.map((preset) => (
+              <div
+                key={preset.name}
+                className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-secondary)] p-5"
+              >
+                <h2 className="text-sm font-semibold text-[var(--text-primary)]">
+                  {preset.name}
+                </h2>
+                <p className="mt-2 min-h-12 text-sm leading-6 text-[var(--text-secondary)]">
+                  {preset.description}
+                </p>
+                <p className="mt-3 font-mono text-xs text-[var(--text-muted)]">
+                  {preset.tools.length} block rules
+                </p>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="mt-4 w-full"
+                  disabled={applyingPreset === preset.name}
+                  onClick={() => handleApplyPreset(preset.name, preset.tools)}
+                >
+                  {applyingPreset === preset.name ? "Applying..." : "Apply Preset"}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </section>
 
         <div className="mb-8 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-secondary)] p-6">
           <p className="text-label mb-4">Add policy</p>

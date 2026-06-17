@@ -163,6 +163,16 @@ def relay_guard_node(state):
     return state
 `;
 
+  const pythonWrapper = `from relaysecurity_dev import Relay
+
+relay = Relay()
+
+def protected_github_delete_repo(arguments):
+    relay.assert_allowed("github_delete_repo", arguments)
+    # Call your real GitHub delete function here after Relay allows it.
+    return {"deleted": arguments.get("repo_name")}
+`;
+
   const claudeCodeWrapper = `#!/usr/bin/env node
 const endpoint = process.env.RELAY_ENDPOINT || "${endpoint}";
 const apiKey = process.env.${apiKeyEnv};
@@ -206,6 +216,18 @@ RELAY_ENDPOINT=${endpoint}
 
 Use the examples in \`relay-examples/\` as the starting point for your stack.
 
+For Node:
+
+\`\`\`bash
+npm install @relaysecurity-dev/node
+\`\`\`
+
+For Python:
+
+\`\`\`bash
+pip install relaysecurity-dev
+\`\`\`
+
 ## 3. Manage policies in Relay
 
 Add and edit rules from the Relay dashboard. Your code keeps calling the same
@@ -215,6 +237,7 @@ wrapper, and Relay decides whether each risky tool call is allowed or blocked.
   const writes = [
     writeFileIfSafe(join(root, "relay.config.json"), config, force, dryRun),
     writeFileIfSafe(join(root, "relay-examples", "node", "github-tool-wrapper.ts"), nodeWrapper, force, dryRun),
+    writeFileIfSafe(join(root, "relay-examples", "python", "github_tool_wrapper.py"), pythonWrapper, force, dryRun),
     writeFileIfSafe(join(root, "relay-examples", "langgraph", "relay_guard.py"), langGraphWrapper, force, dryRun),
     writeFileIfSafe(join(root, "relay-examples", "claude-code", "relay-guard.js"), claudeCodeWrapper, force, dryRun),
     writeFileIfSafe(join(root, ".env.relay.example"), envExample, force, dryRun),

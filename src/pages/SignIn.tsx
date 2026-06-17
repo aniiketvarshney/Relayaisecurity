@@ -61,6 +61,10 @@ export default function SignIn() {
         <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
           Enter your email and we will send you a magic link.
         </p>
+        <p className="mt-3 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm font-semibold text-[var(--text-primary)]">
+          Relay magic links sometimes land in Spam or Promotions, so please
+          check those folders too.
+        </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
           <div>

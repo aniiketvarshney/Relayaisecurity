@@ -286,6 +286,52 @@ export default function Docs() {
             </div>
           </div>
         </section>
+
+        <section className="mt-10">
+          <div className="mb-5">
+            <p className="text-label mb-3">FAQ</p>
+            <h2 className="text-2xl font-semibold tracking-[-0.02em] text-[var(--text-primary)]">
+              Can Relay protect my agent stack?
+            </h2>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-3">
+            <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-secondary)] p-5">
+              <h3 className="text-base font-semibold text-[var(--text-primary)]">
+                Can this protect my GitHub agent?
+              </h3>
+              <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">
+                Yes. Put Relay in front of the GitHub action and send the tool
+                name plus arguments first. If Relay returns{" "}
+                <code>blocked</code>, stop the repo-changing action before it
+                runs.
+              </p>
+            </div>
+
+            <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-secondary)] p-5">
+              <h3 className="text-base font-semibold text-[var(--text-primary)]">
+                Can I connect Claude Code?
+              </h3>
+              <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">
+                Yes. Claude Code can call Relay through a small wrapper script
+                or helper service. Relay decides whether the command should be
+                allowed before the tool executes.
+              </p>
+            </div>
+
+            <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-secondary)] p-5">
+              <h3 className="text-base font-semibold text-[var(--text-primary)]">
+                Can I use this with LangGraph?
+              </h3>
+              <p className="mt-3 text-sm leading-7 text-[var(--text-secondary)]">
+                Yes. Add Relay as a guard node or tool wrapper in your graph.
+                When the graph reaches a risky step, Relay returns{" "}
+                <code>allowed</code> or <code>blocked</code>, and the graph can
+                branch safely from there.
+              </p>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   );

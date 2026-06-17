@@ -176,8 +176,8 @@ export default function Docs() {
 
         <Section eyebrow="Step 1" title="Run one command in your agent project.">
           <p className="mb-4">
-            This is the fastest setup. It generates the files developers need
-            instead of making them write everything by hand.
+            This creates Relay config, environment setup, and ready-to-edit
+            examples for Node, Python, LangGraph, and Claude Code.
           </p>
           <CodeBlock label="Terminal" code={installCommand} />
           <p className="mt-4">The command creates:</p>

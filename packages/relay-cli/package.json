@@ -1,0 +1,17 @@
+{
+  "name": "@relaysecurity-dev/relay-ai",
+  "version": "0.1.0",
+  "description": "One-command setup for Relay agent protection.",
+  "type": "module",
+  "bin": {
+    "relay-ai": "bin/relay-ai.js"
+  },
+  "keywords": [
+    "ai",
+    "agents",
+    "cli",
+    "guardrails",
+    "relay"
+  ],
+  "license": "MIT"
+}

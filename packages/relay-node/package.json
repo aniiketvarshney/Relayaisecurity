@@ -1,0 +1,22 @@
+{
+  "name": "@relaysecurity-dev/node",
+  "version": "0.1.0",
+  "description": "Node SDK for checking AI agent tool calls with Relay.",
+  "type": "module",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "keywords": [
+    "ai",
+    "agents",
+    "guardrails",
+    "security",
+    "relay"
+  ],
+  "license": "MIT"
+}

@@ -1,0 +1,11 @@
+{
+  "endpoint": "https://relay-security-lemon.vercel.app/api/execute",
+  "apiKeyEnv": "RELAY_API_KEY",
+  "defaultDecision": "allow",
+  "protectedTools": [
+    "github_delete_repo",
+    "shell_rm_rf",
+    "deploy_production",
+    "database_drop_table"
+  ]
+}

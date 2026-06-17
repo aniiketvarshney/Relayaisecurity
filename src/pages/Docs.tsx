@@ -19,6 +19,22 @@ if (result.status === "blocked") {
   throw new Error(result.reason || "Blocked by policy");
 }`;
 
+const cliExample = String.raw`npx @relaysecurity-dev/relay-ai init
+
+# Then add your key once:
+RELAY_API_KEY=relay_sk_your_key_here`;
+
+const nodeSdkExample = String.raw`import { createRelay } from "@relaysecurity-dev/node";
+
+const relay = createRelay();
+
+export const deleteRepo = relay.guardTool(
+  "github_delete_repo",
+  async ({ repoName }) => {
+    return github.repos.delete({ repo: repoName });
+  }
+);`;
+
 const curlExample = String.raw`curl -X POST https://relay-security-lemon.vercel.app/api/execute \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
@@ -113,8 +129,8 @@ export default function Docs() {
             <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--text-secondary)]">
               Relay sits in front of your tools, checks policy, and returns
               either <code>allowed</code> or <code>blocked</code> with a reason.
-              Use the browser session path for the Playground, or use an API key
-              when you call Relay from your own app, agent, or backend.
+              Run the setup command once, then manage policy from the dashboard
+              instead of rewriting safety code in every agent.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -159,35 +175,26 @@ export default function Docs() {
                   1. Create an API key
                 </p>
                 <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
-                  Open{" "}
-                  <Link
-                    to="/settings/api-keys"
-                    className="text-white underline underline-offset-2 hover:opacity-90"
-                  >
-                    Settings
-                  </Link>{" "}
-                  and copy your Relay key.
+                  Run <code>npx @relaysecurity-dev/relay-ai init</code> in the
+                  project you want to protect.
                 </p>
               </div>
               <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-primary)] p-4">
                 <p className="text-sm font-semibold text-[var(--text-primary)]">
-                  2. Add one rule
+                  2. Add your API key
                 </p>
                 <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
-                  Start with something obvious, like blocking{" "}
-                  <code className="rounded-[var(--radius-sm)] bg-[var(--bg-secondary)] px-1.5 py-0.5 font-mono text-[12px] text-[var(--code-text)]">
-                    github_delete_repo
-                  </code>
-                  .
+                  Store <code>RELAY_API_KEY</code> once in your app or agent
+                  environment.
                 </p>
               </div>
               <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-primary)] p-4">
                 <p className="text-sm font-semibold text-[var(--text-primary)]">
-                  3. Replace the direct tool call
+                  3. Wrap dangerous tools
                 </p>
                 <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
                   Send the tool name and arguments to Relay before the action
-                  executes.
+                  executes. The SDK keeps that check reusable.
                 </p>
               </div>
               <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-primary)] p-4">
@@ -196,11 +203,52 @@ export default function Docs() {
                 </p>
                 <p className="mt-1 text-sm leading-6 text-[var(--text-secondary)]">
                   Stop the agent on <code>blocked</code> and continue on{" "}
-                  <code>allowed</code>.
+                  <code>allowed</code>. Change rules later in Relay, not code.
                 </p>
               </div>
             </div>
           </div>
+        </section>
+
+        <section className="mt-14 grid gap-6 lg:grid-cols-2">
+          <Step
+            number="00"
+            title="One-time setup for lazy-fast builders"
+            body={
+              <>
+                <p>
+                  The fastest path is the Relay CLI. It detects the project,
+                  creates <code>relay.config.json</code>, adds example wrappers,
+                  and tells the developer exactly where to put the API key.
+                </p>
+                <p className="mt-3">
+                  After setup, future policy changes happen in the Relay
+                  dashboard.
+                </p>
+              </>
+            }
+          />
+          <CodeBlock label="CLI" code={cliExample} />
+        </section>
+
+        <section className="mt-6 grid gap-6 lg:grid-cols-2">
+          <CodeBlock label="Node SDK wrapper" code={nodeSdkExample} />
+          <Step
+            number="SDK"
+            title="Change one import, keep the guard forever"
+            body={
+              <>
+                <p>
+                  The SDK wrapper is the default integration path for Node
+                  agents. Developers wrap the dangerous function once, then the
+                  tool automatically checks Relay on every call.
+                </p>
+                <p className="mt-3">
+                  The same pattern can be shipped for Python and Java next.
+                </p>
+              </>
+            }
+          />
         </section>
 
         <section className="mt-14 grid gap-6 lg:grid-cols-2">

@@ -12,7 +12,9 @@ export interface Policy {
 export interface ApiKey {
   id: string;
   user_id: string;
-  key: string;
+  key: string | null;
+  key_hash?: string | null;
+  key_preview?: string | null;
   created_at: string;
 }
 

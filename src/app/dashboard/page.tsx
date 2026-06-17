@@ -10,6 +10,10 @@ export default function DashboardPage() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "allowed" | "blocked">(
+    "all",
+  );
+  const [toolSearch, setToolSearch] = useState("");
 
   const loadLogs = useCallback(async () => {
     setLoading(true);
@@ -30,7 +34,8 @@ export default function DashboardPage() {
       .from("audit_logs")
       .select("*")
       .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(1000);
 
     if (fetchError) {
       setError(fetchError.message);
@@ -48,6 +53,15 @@ export default function DashboardPage() {
 
   const blockedCount = logs.filter((log) => log.status === "blocked").length;
   const allowedCount = logs.filter((log) => log.status === "allowed").length;
+  const filteredLogs = logs.filter((log) => {
+    const matchesStatus =
+      statusFilter === "all" || log.status === statusFilter;
+    const matchesSearch = log.tool_name
+      .toLowerCase()
+      .includes(toolSearch.trim().toLowerCase());
+
+    return matchesStatus && matchesSearch;
+  });
 
   return (
     <main className="min-h-screen bg-[var(--bg-primary)] pt-14">
@@ -132,8 +146,31 @@ export default function DashboardPage() {
             <span className="text-xs text-[var(--text-muted)]">
               {loading
                 ? "Loading..."
-                : `${logs.length} event${logs.length === 1 ? "" : "s"}`}
+                : `${filteredLogs.length} shown / ${logs.length} total`}
             </span>
+          </div>
+
+          <div className="mb-4 grid gap-3 md:grid-cols-[220px_1fr]">
+            <select
+              value={statusFilter}
+              onChange={(event) =>
+                setStatusFilter(
+                  event.target.value as "all" | "allowed" | "blocked",
+                )
+              }
+              className="h-10 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--bg-primary)] px-3 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-white)]"
+            >
+              <option value="all">All statuses</option>
+              <option value="blocked">Blocked only</option>
+              <option value="allowed">Allowed only</option>
+            </select>
+            <input
+              type="search"
+              value={toolSearch}
+              onChange={(event) => setToolSearch(event.target.value)}
+              placeholder="Search tool name..."
+              className="h-10 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--bg-primary)] px-3 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-white)]"
+            />
           </div>
 
           <div className="overflow-x-auto">
@@ -164,7 +201,7 @@ export default function DashboardPage() {
                       Loading audit events…
                     </td>
                   </tr>
-                ) : logs.length === 0 ? (
+                ) : filteredLogs.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="py-16">
                       <div className="flex flex-col items-center justify-center text-center">
@@ -183,17 +220,17 @@ export default function DashboardPage() {
                           </svg>
                         </div>
                         <p className="text-sm font-medium text-[var(--text-primary)]">
-                          Waiting for agent activity
+                          No matching audit events
                         </p>
                         <p className="mt-1 max-w-sm text-xs leading-relaxed text-[var(--text-muted)]">
-                          Events appear here once agents make tool calls through
-                          Relay.
+                          Events appear here once matching tool calls pass
+                          through Relay.
                         </p>
                       </div>
                     </td>
                   </tr>
                 ) : (
-                  logs.map((log) => (
+                  filteredLogs.map((log) => (
                     <tr
                       key={log.id}
                       className="border-b border-[var(--border)] transition-colors duration-[150ms] hover:bg-[var(--bg-secondary)]"

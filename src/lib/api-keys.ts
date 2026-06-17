@@ -13,6 +13,15 @@ export function generateApiKey(): string {
   return `${API_KEY_PREFIX}${suffix}`;
 }
 
+export async function hashApiKey(key: string): Promise<string> {
+  const encoded = new TextEncoder().encode(key);
+  const digest = await crypto.subtle.digest("SHA-256", encoded);
+
+  return Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("");
+}
+
 export function maskApiKey(key: string): string {
   if (key.length <= API_KEY_PREFIX.length + 4) {
     return `${API_KEY_PREFIX}****`;

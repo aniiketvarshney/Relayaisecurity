@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import Button from "../components/Button";
-import { generateApiKey, maskApiKey } from "../lib/api-keys";
+import { generateApiKey, hashApiKey, maskApiKey } from "../lib/api-keys";
 import { supabase } from "../lib/supabase";
 import type { ApiKey } from "../types/database";
 
 const installCommand = "npx @relaysecurity-dev/relay-ai init";
+const maxApiKeys = 20;
 
 export default function ApiKeys() {
   const [keys, setKeys] = useState<ApiKey[]>([]);
@@ -65,12 +66,33 @@ export default function ApiKeys() {
       return;
     }
 
-    const key = generateApiKey();
+    if (keys.length >= maxApiKeys) {
+      setError(`You can create up to ${maxApiKeys} API keys.`);
+      setGenerating(false);
+      return;
+    }
 
-    const { error: insertError } = await supabase.from("api_keys").insert({
+    const key = generateApiKey();
+    const keyHash = await hashApiKey(key);
+    const keyPreview = maskApiKey(key);
+
+    let { error: insertError } = await supabase.from("api_keys").insert({
       user_id: user.id,
-      key,
+      key: null,
+      key_hash: keyHash,
+      key_preview: keyPreview,
     });
+
+    if (
+      insertError?.message.includes("key_hash") ||
+      insertError?.message.includes("key_preview")
+    ) {
+      const fallback = await supabase.from("api_keys").insert({
+        user_id: user.id,
+        key,
+      });
+      insertError = fallback.error;
+    }
 
     setGenerating(false);
 
@@ -255,7 +277,8 @@ export default function ApiKeys() {
                       className="border-b border-[var(--border)] transition-colors duration-[150ms] hover:bg-[var(--bg-secondary)]"
                     >
                       <td className="py-3 pr-4 font-mono text-[13px] text-[var(--code-text)]">
-                        {maskApiKey(apiKey.key)}
+                        {apiKey.key_preview ??
+                          (apiKey.key ? maskApiKey(apiKey.key) : "relay_sk_****")}
                       </td>
                       <td className="py-3 pr-4 font-mono text-[13px] text-[var(--text-muted)]">
                         {new Date(apiKey.created_at).toLocaleString()}

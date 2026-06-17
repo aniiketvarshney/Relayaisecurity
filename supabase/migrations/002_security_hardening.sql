@@ -47,7 +47,7 @@ as $$
   select exists (
     select 1
     from public.policies
-    where user_id = p_user_id
+    where user_id::text = p_user_id::text
       and tool_name = any(p_tool_names)
       and action = 'block'
   );
@@ -67,7 +67,7 @@ set search_path = public
 as $$
   select count(*)::integer
   from public.audit_logs
-  where user_id = p_user_id
+  where user_id::text = p_user_id::text
     and created_at >= p_since;
 $$;
 

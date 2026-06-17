@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { cwd, env, exit } from "node:process";
+import { createInterface } from "node:readline/promises";
+import { cwd, env, exit, stdin, stdout } from "node:process";
 
 const DEFAULT_ENDPOINT = "https://relay-security-lemon.vercel.app/api/execute";
 
@@ -57,13 +58,51 @@ function getProjectName(root) {
   }
 }
 
-function init() {
+async function askSetupQuestions(detectedStack, endpoint, apiKeyEnv) {
+  if (hasFlag("yes") || !stdin.isTTY || !stdout.isTTY) {
+    return {
+      stack: readFlag("stack", detectedStack),
+      endpoint,
+      apiKeyEnv,
+    };
+  }
+
+  const rl = createInterface({ input: stdin, output: stdout });
+
+  try {
+    const stack =
+      (await rl.question(`Stack (${detectedStack}): `)).trim() || detectedStack;
+    const chosenEndpoint =
+      (await rl.question(`Relay endpoint (${endpoint}): `)).trim() || endpoint;
+    const chosenApiKeyEnv =
+      (await rl.question(`API key env var (${apiKeyEnv}): `)).trim() ||
+      apiKeyEnv;
+
+    return {
+      stack,
+      endpoint: chosenEndpoint,
+      apiKeyEnv: chosenApiKeyEnv,
+    };
+  } finally {
+    rl.close();
+  }
+}
+
+async function init() {
   const root = cwd();
   const dryRun = hasFlag("dry-run");
   const force = hasFlag("force");
-  const stack = readFlag("stack", detectStack(root).join(","));
-  const endpoint = readFlag("endpoint", env.RELAY_ENDPOINT || DEFAULT_ENDPOINT);
-  const apiKeyEnv = readFlag("api-key-env", "RELAY_API_KEY");
+  const detectedStack = detectStack(root).join(",");
+  const initialEndpoint = readFlag("endpoint", env.RELAY_ENDPOINT || DEFAULT_ENDPOINT);
+  const initialApiKeyEnv = readFlag("api-key-env", "RELAY_API_KEY");
+  const answers = await askSetupQuestions(
+    readFlag("stack", detectedStack),
+    initialEndpoint,
+    initialApiKeyEnv
+  );
+  const stack = answers.stack;
+  const endpoint = answers.endpoint;
+  const apiKeyEnv = answers.apiKeyEnv;
   const projectName = getProjectName(root);
 
   const config = `${JSON.stringify(
@@ -150,12 +189,36 @@ export async function relayCheck(tool, args = {}) {
 ${apiKeyEnv}=relay_sk_your_key_here
 `;
 
+  const setupGuide = `# Relay setup for ${projectName}
+
+Relay is now ready to protect risky AI agent tool calls in this project.
+
+## 1. Add your API key
+
+Put this in your environment:
+
+\`\`\`bash
+${apiKeyEnv}=relay_sk_your_key_here
+RELAY_ENDPOINT=${endpoint}
+\`\`\`
+
+## 2. Wrap dangerous tools
+
+Use the examples in \`relay-examples/\` as the starting point for your stack.
+
+## 3. Manage policies in Relay
+
+Add and edit rules from the Relay dashboard. Your code keeps calling the same
+wrapper, and Relay decides whether each risky tool call is allowed or blocked.
+`;
+
   const writes = [
     writeFileIfSafe(join(root, "relay.config.json"), config, force, dryRun),
     writeFileIfSafe(join(root, "relay-examples", "node", "github-tool-wrapper.ts"), nodeWrapper, force, dryRun),
     writeFileIfSafe(join(root, "relay-examples", "langgraph", "relay_guard.py"), langGraphWrapper, force, dryRun),
     writeFileIfSafe(join(root, "relay-examples", "claude-code", "relay-guard.js"), claudeCodeWrapper, force, dryRun),
     writeFileIfSafe(join(root, ".env.relay.example"), envExample, force, dryRun),
+    writeFileIfSafe(join(root, "RELAY_SETUP.md"), setupGuide, force, dryRun),
   ];
 
   console.log("Relay init complete");
@@ -173,12 +236,13 @@ ${apiKeyEnv}=relay_sk_your_key_here
 }
 
 if (command === "init") {
-  init();
+  await init();
 } else {
   console.log("Relay AI CLI");
   console.log("");
   console.log("Usage:");
   console.log("  relay-ai init");
+  console.log("  relay-ai init --yes");
   console.log("  relay-ai init --stack node,langgraph");
   console.log("  relay-ai init --endpoint https://your-app.vercel.app/api/execute");
   exit(command ? 1 : 0);

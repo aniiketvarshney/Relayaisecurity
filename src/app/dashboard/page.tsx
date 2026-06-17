@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import Badge from "../../components/Badge";
 import { supabase } from "../../lib/supabase";
 import type { AuditLog } from "../../types/database";
+
+const installCommand = "npx @relaysecurity-dev/relay-ai init";
 
 export default function DashboardPage() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -66,6 +69,41 @@ export default function DashboardPage() {
         {error && (
           <p className="mb-4 text-sm text-[var(--danger)]">{error}</p>
         )}
+
+        <section className="mb-8 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-secondary)] p-5">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-label mb-2">Protect your first agent</p>
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                Install Relay once, then manage rules from this dashboard.
+              </h2>
+              <div className="mt-4 grid gap-3 text-sm text-[var(--text-secondary)] md:grid-cols-3">
+                <p>1. Create an API key.</p>
+                <p>2. Run the install command.</p>
+                <p>3. Test a blocked tool call.</p>
+              </div>
+            </div>
+            <div className="min-w-0 lg:w-[440px]">
+              <code className="block overflow-x-auto rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--bg-primary)] px-3 py-2 font-mono text-[13px] text-[var(--code-text)]">
+                {installCommand}
+              </code>
+              <div className="mt-3 flex flex-wrap gap-3">
+                <Link
+                  to="/settings/api-keys"
+                  className="inline-flex h-9 items-center rounded-[var(--radius-md)] bg-white px-3 text-xs font-medium text-black transition-opacity hover:opacity-90"
+                >
+                  Create API Key
+                </Link>
+                <Link
+                  to="/docs"
+                  className="inline-flex h-9 items-center rounded-[var(--radius-md)] border border-[var(--border)] px-3 text-xs font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-primary)]"
+                >
+                  Open Quickstart
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-secondary)] p-5">

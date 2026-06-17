@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 const browserExample = String.raw`const response = await fetch("/api/execute", {
@@ -77,12 +77,27 @@ function CodeBlock({
   label: string;
   code: string;
 }) {
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    await navigator.clipboard.writeText(code);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1600);
+  }
+
   return (
     <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-code)] bg-[var(--bg-primary)]">
       <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-2.5">
         <span className="text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--text-tertiary)]">
           {label}
         </span>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="rounded-[var(--radius-sm)] border border-[var(--border)] px-2 py-1 text-[11px] font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]"
+        >
+          {copied ? "Copied" : "Copy"}
+        </button>
       </div>
       <pre className="overflow-x-auto p-5 font-mono text-[13px] leading-relaxed text-[var(--code-text)]">
         {code}

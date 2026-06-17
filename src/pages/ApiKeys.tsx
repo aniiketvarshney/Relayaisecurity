@@ -4,6 +4,8 @@ import { generateApiKey, maskApiKey } from "../lib/api-keys";
 import { supabase } from "../lib/supabase";
 import type { ApiKey } from "../types/database";
 
+const installCommand = "npx @relaysecurity-dev/relay-ai init";
+
 export default function ApiKeys() {
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(true);
@@ -11,6 +13,7 @@ export default function ApiKeys() {
   const [generating, setGenerating] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [newKey, setNewKey] = useState<string | null>(null);
+  const [copiedInstall, setCopiedInstall] = useState(false);
 
   const loadKeys = useCallback(async () => {
     setLoading(true);
@@ -111,6 +114,16 @@ export default function ApiKeys() {
     }
   }
 
+  async function handleCopyInstallCommand() {
+    try {
+      await navigator.clipboard.writeText(installCommand);
+      setCopiedInstall(true);
+      window.setTimeout(() => setCopiedInstall(false), 1600);
+    } catch {
+      setError("Failed to copy install command.");
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[var(--bg-primary)] pt-14">
       <div className="mx-auto max-w-7xl px-6 py-10">
@@ -155,6 +168,35 @@ export default function ApiKeys() {
         {error && (
           <p className="mb-4 text-sm text-[var(--danger)]">{error}</p>
         )}
+
+        <section className="mb-8 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-secondary)] p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-label mb-2">Install Relay in your agent</p>
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                Run the setup command once, then add your API key to the agent
+                environment.
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
+                The CLI creates config and examples for Node, LangGraph, and
+                Claude Code style wrappers.
+              </p>
+            </div>
+            <div className="min-w-0 lg:w-[440px]">
+              <code className="block overflow-x-auto rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--bg-primary)] px-3 py-2 font-mono text-[13px] text-[var(--code-text)]">
+                {installCommand}
+              </code>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="mt-3"
+                onClick={handleCopyInstallCommand}
+              >
+                {copiedInstall ? "Copied" : "Copy Install Command"}
+              </Button>
+            </div>
+          </div>
+        </section>
 
         <div>
           <div className="mb-3 flex items-center justify-between">

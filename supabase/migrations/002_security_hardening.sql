@@ -13,7 +13,7 @@ create unique index if not exists api_keys_key_hash_idx
 
 update public.api_keys
 set
-  key_hash = encode(digest(key, 'sha256'), 'hex'),
+  key_hash = encode(digest(convert_to(key, 'UTF8'), 'sha256'), 'hex'),
   key_preview = 'relay_sk_****' || right(key, 4)
 where key is not null
   and key_hash is null;
@@ -27,7 +27,7 @@ set search_path = public
 as $$
   select user_id
   from public.api_keys
-  where key_hash = encode(digest(api_key, 'sha256'), 'hex')
+  where key_hash = encode(digest(convert_to(api_key, 'UTF8'), 'sha256'), 'hex')
      or key = api_key
   limit 1;
 $$;

@@ -77,7 +77,7 @@ const faqs = [
   {
     question: "Can you help us integrate it?",
     answer:
-      "Yes. The best first use is a paid pilot where Relay is added to one real agent workflow, policies are configured, and your team verifies blocked calls in the dashboard.",
+      "Yes. We can help you integrate Relay for free on a live call, add it to one real agent workflow, configure policies, and verify blocked calls in the dashboard.",
   },
 ];
 
@@ -578,6 +578,25 @@ github_delete_repo -> blocked`}</pre>
                 </p>
               </div>
             ))}
+          </div>
+
+          <div className="mt-8 rounded-[var(--radius-lg)] border border-[rgba(34,197,94,0.28)] bg-[rgba(34,197,94,0.06)] p-6">
+            <p className="text-label mb-3 text-[var(--success)]">
+              Need help setting it up?
+            </p>
+            <h3 className="text-2xl font-bold tracking-[-0.02em] text-[var(--text-primary)]">
+              Contact us for free live-call integration help.
+            </h3>
+            <p className="mt-3 text-sm leading-6 text-[var(--text-secondary)]">
+              Email{" "}
+              <a
+                href="mailto:aniiketvarshney@gmail.com"
+                className="font-medium text-[var(--text-primary)] underline decoration-[var(--border-strong)] underline-offset-4 hover:decoration-[var(--text-primary)]"
+              >
+                aniiketvarshney@gmail.com
+              </a>{" "}
+              and share what agent stack you are using.
+            </p>
           </div>
         </div>
       </section>

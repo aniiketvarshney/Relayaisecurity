@@ -28,6 +28,59 @@ const useCases = [
   },
 ];
 
+const faqs = [
+  {
+    question: "Why use Relay instead of writing a few if-statements?",
+    answer:
+      "A few if-statements work for one script. Relay gives teams a shared policy layer, API keys, audit logs, presets, and one place to update safety rules without hunting through every agent codebase.",
+  },
+  {
+    question: "How fast can we set this up?",
+    answer:
+      "For a basic pilot, run the CLI, add your API key, and wrap the risky tools once. Most teams can test their first blocked call in minutes.",
+  },
+  {
+    question: "Does Relay replace my agent framework?",
+    answer:
+      "No. Relay sits in front of dangerous tools. Keep your current agent, model, prompts, and framework. Relay only checks whether a tool call should be allowed or blocked.",
+  },
+  {
+    question: "What agents and models does Relay work with?",
+    answer:
+      "Relay is model-agnostic. It can work with OpenAI, Claude, local models, LangGraph, Claude Code, custom Node agents, Python agents, and any system that can make an HTTP request.",
+  },
+  {
+    question: "What kinds of calls should we protect first?",
+    answer:
+      "Start with tools that can cause real damage: deleting GitHub repos, running shell delete commands, changing production deploys, dropping database tables, editing secrets, or modifying customer data.",
+  },
+  {
+    question: "Does Relay execute the tool for us?",
+    answer:
+      "No. Relay returns a decision. Your agent still owns the actual tool execution. If Relay says blocked, your wrapper should stop the call. If Relay says allowed, your code can continue.",
+  },
+  {
+    question: "What do we get back from Relay?",
+    answer:
+      "You get a simple JSON result such as status: allowed or status: blocked, plus a reason. The decision is also recorded so your team can review what happened later.",
+  },
+  {
+    question: "Can small AI teams use this today?",
+    answer:
+      "Yes, for beta pilots and early production experiments. Relay is built for small teams that want a practical safety gate now, before they build a full internal security platform.",
+  },
+  {
+    question: "Is this enterprise-ready?",
+    answer:
+      "Not yet. Relay is ready for indie builders and small AI teams testing tool-call safety. Enterprise needs more work: SSO, team roles, stronger monitoring, exports, SLAs, and compliance workflows.",
+  },
+  {
+    question: "Can you help us integrate it?",
+    answer:
+      "Yes. The best first use is a paid pilot where Relay is added to one real agent workflow, policies are configured, and your team verifies blocked calls in the dashboard.",
+  },
+];
+
 function ToolCallFirewall() {
   return (
     <div className="relay-firewall relative overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-code)] bg-[radial-gradient(circle_at_50%_0%,rgba(34,197,94,0.13),transparent_35%),var(--bg-primary)] p-5">
@@ -492,6 +545,39 @@ github_delete_repo -> blocked`}</pre>
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="border-b border-[var(--border)]">
+        <div className="mx-auto max-w-7xl px-6 py-16 lg:py-24">
+          <div className="mb-10 max-w-3xl">
+            <p className="text-label mb-4">FAQ</p>
+            <h2 className="text-3xl font-bold tracking-[-0.02em] text-[var(--text-primary)] sm:text-4xl">
+              Questions devs and small AI teams ask before using Relay.
+            </h2>
+            <p className="mt-5 text-[15px] leading-7 text-[var(--text-secondary)]">
+              The short version: Relay is a policy gate for risky agent tool
+              calls. It is not a model, not an agent framework, and not a
+              replacement for your code.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {faqs.map((faq) => (
+              <div
+                key={faq.question}
+                className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg-secondary)] p-5"
+              >
+                <h3 className="text-base font-semibold text-[var(--text-primary)]">
+                  {faq.question}
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-[var(--text-secondary)]">
+                  {faq.answer}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

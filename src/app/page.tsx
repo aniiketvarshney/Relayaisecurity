@@ -329,6 +329,74 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Problem / solution */}
+      <section className="border-b border-[var(--border)]">
+        <div className="mx-auto max-w-7xl px-6 py-16 lg:py-24">
+          <div className="mb-10 max-w-3xl">
+            <p className="text-label mb-4">The problem</p>
+            <h2 className="text-3xl font-bold tracking-[-0.02em] text-[var(--text-primary)] sm:text-4xl">
+              AI agents are useful, but tool access is where they become risky.
+            </h2>
+            <p className="mt-5 text-[15px] leading-7 text-[var(--text-secondary)]">
+              The model is not the only thing you need to trust. You also need
+              to control what the agent can do once it decides to act.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="relative overflow-hidden rounded-[var(--radius-lg)] border border-[rgba(239,68,68,0.22)] bg-[radial-gradient(circle_at_top_left,rgba(239,68,68,0.12),transparent_40%),var(--bg-secondary)] p-6">
+              <div className="absolute right-6 top-6 rounded-full border border-[rgba(239,68,68,0.35)] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.18em] text-[var(--danger)]">
+                Risk
+              </div>
+              <p className="text-label mb-5 text-[var(--danger)]">
+                Without a guardrail
+              </p>
+              <div className="space-y-4">
+                {problemPoints.map((item) => (
+                  <div key={item} className="flex gap-3">
+                    <span className="mt-2 h-1.5 w-1.5 rounded-full bg-[var(--danger)]" />
+                    <p className="text-sm leading-6 text-[var(--text-secondary)]">
+                      {item}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-8 rounded-[var(--radius-md)] border border-[rgba(239,68,68,0.18)] bg-black/35 p-4">
+                <pre className="overflow-x-auto font-mono text-xs leading-6 text-[var(--code-text)]">{`agent decides
+  -> tool call
+  -> no gate
+  -> damage`}</pre>
+              </div>
+            </div>
+
+            <div className="relative overflow-hidden rounded-[var(--radius-lg)] border border-[rgba(34,197,94,0.26)] bg-[radial-gradient(circle_at_top_right,rgba(34,197,94,0.12),transparent_40%),var(--bg-secondary)] p-6">
+              <div className="absolute right-6 top-6 rounded-full border border-[rgba(34,197,94,0.35)] px-2 py-1 text-[10px] font-mono uppercase tracking-[0.18em] text-[var(--success)]">
+                Relay
+              </div>
+              <p className="text-label mb-5 text-[var(--success)]">
+                With Relay in front
+              </p>
+              <div className="space-y-4">
+                {solutionPoints.map((item) => (
+                  <div key={item} className="flex gap-3">
+                    <span className="mt-2 h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
+                    <p className="text-sm leading-6 text-[var(--text-secondary)]">
+                      {item}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-8 rounded-[var(--radius-md)] border border-[rgba(34,197,94,0.18)] bg-black/35 p-4">
+                <pre className="overflow-x-auto font-mono text-xs leading-6 text-[var(--code-text)]">{`agent decides
+  -> Relay checks
+  -> blocked or allowed
+  -> action continues safely`}</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Product story */}
       <section className="border-b border-[var(--border)]">
         <div className="mx-auto max-w-7xl px-6 py-16 lg:py-24">

@@ -25,7 +25,6 @@
 - [Framework Integrations](#framework-integrations)
 - [Published Packages](#published-packages)
 - [Project Status](#project-status)
-- [Open Source Boundary](#open-source-boundary)
 - [Feedback](#feedback)
 
 ## The Problem
@@ -118,28 +117,13 @@ What is not ready yet:
 
 Relay is currently best for indie developers and small AI teams testing agent safety.
 
-## Open Source Boundary
-
-Open source:
-
-- CLI
-- SDKs for Node and Python
-- Claude Code and LangGraph wrappers
-- Docs, examples, policy presets, and test harness
-
-Keep private:
-
-- backend policy engine
-- API key auth and rate limiting logic
-- abuse detection rules
-- infrastructure secrets and admin tools
-
 ## Feedback
 
 If you are building autonomous agents and worrying about prompt injection, I want your feedback.
 
 - Live demo: https://relay-security-lemon.vercel.app/
 - GitHub: https://github.com/aniiketvarshney/Relay-Security
+- Twitter/X: https://x.com/AniketVarshne
 - Email: aniiketvarshney@gmail.com
 
 Built by developers for developers who do not want their AI agents nuking production.

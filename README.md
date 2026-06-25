@@ -25,6 +25,7 @@
 - [Framework Integrations](#framework-integrations)
 - [Published Packages](#published-packages)
 - [Project Status](#project-status)
+- [FAQ](#faq)
 - [Feedback](#feedback)
 
 ## The Problem
@@ -116,6 +117,24 @@ What is not ready yet:
 - Compliance certifications
 
 Relay is currently best for indie developers and small AI teams testing agent safety.
+
+## FAQ
+
+**What is Relay?**
+
+Relay is a safety layer for AI agents that checks risky tool calls before they run.
+
+**How do I start?**
+
+Run `npx @relaysecurity-dev/relay-ai init --yes`, add your API key, and wrap risky tools.
+
+**What does Relay work with?**
+
+Relay works with Node, Python, LangGraph, Claude Code, and custom tool-calling agents.
+
+**How does it help with prompt injection?**
+
+It does not trust the prompt. It checks the tool call itself, so harmful actions can still be blocked.
 
 ## Feedback
 

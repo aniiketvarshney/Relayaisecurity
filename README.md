@@ -1,4 +1,4 @@
-# 🛡️ Relay
+# <img src="assets/relay-shield.svg" alt="Relay shield" width="28" /> Relay
 
 > Stop AI agents before they run dangerous tool calls.
 
@@ -53,6 +53,8 @@ Set your API key:
 ```bash
 export RELAY_API_KEY=relay_sk_your_key_here
 ```
+
+*Note: The SDK and CLI are open source. The API key connects to the optional hosted dashboard for centralized audit logs and policy management.*
 
 Wrap a dangerous tool:
 

@@ -76,10 +76,16 @@ export const deleteRepo = relay.guardTool(
 Relay acts as a security proxy between your agent and your tools.
 
 ```text
-AI agent decides action -> Relay inspects request -> Tool executes if allowed
-                              |
-                              -> returns allowed / blocked
-                                 based on your policies
+AI Agent
+    │
+    ▼
+Relay
+(Policy Engine)
+    │
+ Allowed / Blocked
+    │
+    ▼
+GitHub • Shell • Database • APIs
 ```
 
 When the agent calls a wrapped tool, Relay checks the tool name and arguments against your policies in real time. You manage the rules from the Relay dashboard, so the agent code does not need to change every time.

@@ -1,4 +1,4 @@
-# Relay
+# 🛡️ Relay
 
 > Stop AI agents before they run dangerous tool calls.
 

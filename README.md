@@ -75,17 +75,14 @@ export const deleteRepo = relay.guardTool(
 
 Relay acts as a security proxy between your agent and your tools.
 
-```text
-AI Agent
-    │
-    ▼
-Relay
-(Policy Engine)
-    │
- Allowed / Blocked
-    │
-    ▼
-GitHub • Shell • Database • APIs
+```mermaid
+flowchart TD
+  A[AI Agent] --> B[Relay]
+  B --> C{Allowed / Blocked}
+  C --> D[GitHub]
+  C --> E[Shell]
+  C --> F[Database]
+  C --> G[APIs]
 ```
 
 When the agent calls a wrapped tool, Relay checks the tool name and arguments against your policies in real time. You manage the rules from the Relay dashboard, so the agent code does not need to change every time.
@@ -98,6 +95,56 @@ The CLI generates starter files for common stacks:
 - `relay-examples/python/` for Python agents
 - `relay-examples/langgraph/` for LangGraph guard nodes
 - `relay-examples/claude-code/` for Claude Code command checks
+
+## Optional Sandbox
+
+For shell-based agents, use Docker with `--network none` and an egress allowlist. Relay checks the command first, then the sandbox keeps the runtime isolated.
+
+```mermaid
+flowchart LR
+  A[Agent wants shell command] --> B[Relay policy check]
+  B --> C{Allowed?}
+  C -- No --> D[Blocked with reason]
+  C -- Yes --> E[Docker sandbox]
+  E --> F[No network by default]
+  F --> G[Return output safely]
+```
+
+Two modes:
+
+- Basic mode: Relay checks the tool call before it runs.
+- Sandbox mode: Relay checks the tool call, then runs shell commands inside Docker isolation.
+
+Test Docker before using sandbox mode:
+
+```bash
+npx @relaysecurity-dev/relay-ai sandbox test
+```
+
+Expected output:
+
+```text
+Relay sandbox test
+
+1. Docker CLI found: Docker version 29.5.3
+2. Docker engine is running
+3. No-network container works
+
+Relay sandbox works
+
+Result: sandbox ready
+```
+
+```json
+{
+  "sandbox": {
+    "type": "docker",
+    "image": "ubuntu:24.04",
+    "network": "none",
+    "egressAllowlist": ["github.com", "api.github.com"]
+  }
+}
+```
 
 ## Published Packages
 
